@@ -23,29 +23,28 @@ import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.$;
 
 public class PatternsTest {
-    private static Faker faker;
+  //  private static Faker faker;
     // int days = 4;
     // ChangeDate changeDate = new ChangeDate();
 
-    @BeforeAll
-    static void setFaker() {
-        faker = new Faker(new Locale("ru"));
+//    @BeforeAll
+//    static void setFaker() {
+//        faker = new Faker(new Locale("ru"));
+//    }
+
+    @BeforeEach
+    void setup() {
+        open( "http://localhost:7777" );
     }
 
     @BeforeAll
-    static void setUpAll() {
-        SelenideLogger.addListener("allure", new AllureSelenide());
+    static void setUp() {
+        SelenideLogger.addListener("allure", new AllureSelenide() );
     }
 
     @AfterAll
     static void tearDownAll() {
         SelenideLogger.removeListener("allure");
-    }
-
-    @BeforeEach
-    void setUp() {
-        open("http://localhost:9999");
-
     }
 
     @Test
@@ -68,20 +67,18 @@ public class PatternsTest {
         $("[data-test-id='agreement']").click();
         $$("button").find(exactText("Запланировать")).click();
         $("[data-test-id=success-notification] .notification__content")
-                .shouldHave(Condition.text("Встреча успешно запланирована на " + firstMeetingDate))
-                .shouldBe(Condition.visible, Duration.ofSeconds(20));
-// Перепланирование встречи
-
+                .shouldHave(Condition.text("Встреча успешно запланирована на " + firstMeetingDate));
+        //перепланирование
         $(".calendar-input input").doubleClick().sendKeys(Keys.BACK_SPACE);
-        $("[data-test-id='date'] input").setValue(secondMeetingDate);
-        $$("button").find(exactText("Запланировать")).click();
-        $("[data-test-id=replan-notification] .notification__content")
-                .shouldHave(text("У вас уже запланирована встреча на другую дату. Перепланировать?"));
-        $$("button").find(exactText("Перепланировать")).click();
+        $(".calendar-input input").setValue(secondMeetingDate);
+        $(".button").click();
+        $(withText("Успешно!")).shouldBe(Condition.visible, Duration.ofSeconds(30));
+        $("[data-test-id=replan-notification]")
+                .shouldHave(Condition.text("У вас уже запланирована встреча на другую дату. Перепланировать?"));
+        $(withText("Перепланировать")).click();
+        $("[data-test-id=success-notification]").shouldBe(Condition.visible, Duration.ofSeconds(30));
         $("[data-test-id=success-notification] .notification__content")
-                .shouldHave(text("Встреча успешно запланирована на " + secondMeetingDate))
-                .shouldBe(Condition.visible, Duration.ofSeconds(20));
+                .shouldHave(Condition.text("Встреча успешно запланирована на " + secondMeetingDate));
     }
+
 }
-
-
